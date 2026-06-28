@@ -11,6 +11,7 @@ import Dock from "./Dock";
 import CurrentStatistics from "./CurrentStatistics";
 import Attachments from "./Attachments";
 import {FanSpeedMediumIcon, WaterGradeLowIcon} from "../components/CustomIcons";
+import CleaningOptions from "./CleaningOptions";
 import React from "react";
 
 
@@ -76,6 +77,8 @@ const ControlsBody = (): React.ReactElement => {
                     icon={<WaterGradeLowIcon fontSize="small" />}
                 />
             )}
+
+            <CleaningOptions />
 
             {
                 (triggerEmptySupported || mopDockCleanTriggerSupported || mopDockDryTriggerSupported) &&
