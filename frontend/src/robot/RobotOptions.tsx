@@ -6,7 +6,6 @@ import {
     AutoEmptyDockAutoEmptyInterval,
     Capability,
     CarpetSensorMode,
-    CleanRoute,
     MopDockMopDryingDuration,
     MopDockMopWashTemperature,
     useAutoEmptyDockAutoEmptyDurationControlPropertiesQuery,
@@ -22,9 +21,6 @@ import {
     useCarpetSensorModeMutation,
     useCarpetSensorModePropertiesQuery,
     useCarpetSensorModeQuery,
-    useCleanRouteControlPropertiesQuery,
-    useCleanRouteMutation,
-    useCleanRouteQuery,
     useCollisionAvoidantNavigationControlMutation,
     useCollisionAvoidantNavigationControlQuery,
     useFloorMaterialDirectionAwareNavigationControlMutation,
@@ -72,7 +68,6 @@ import {
     Pets as PetObstacleAvoidanceControlIcon,
     Photo as ObstacleImagesIcon,
     RoundaboutRight as CollisionAvoidantNavigationControlIcon,
-    Route as CleanRouteControlIcon,
     SatelliteAlt as PerceptionIcon,
     Schema as BehaviourIcon,
     Settings as GeneralIcon,
@@ -696,119 +691,6 @@ const FloorMaterialDirectionAwareNavigationControlCapabilitySwitchListMenuItem =
     );
 };
 
-const CleanRouteControlCapabilitySelectListMenuItem = () => {
-    const SORT_ORDER = {
-        "quick": 1,
-        "normal": 2,
-        "intensive": 3,
-        "deep": 4
-    };
-
-    const {
-        data: cleanRouteControlProperties,
-        isPending: cleanRouteControlPropertiesPending,
-        isError: cleanRouteControlPropertiesError
-    } = useCleanRouteControlPropertiesQuery();
-
-    const options: Array<SelectListMenuItemOption> = (
-        cleanRouteControlProperties?.supportedRoutes ?? []
-    ).sort((a, b) => {
-        const aMapped = SORT_ORDER[a] ?? 10;
-        const bMapped = SORT_ORDER[b] ?? 10;
-
-        if (aMapped < bMapped) {
-            return -1;
-        } else if (bMapped < aMapped) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }).map((val: CleanRoute) => {
-        let label;
-
-        switch (val) {
-            case "quick":
-                label = "Quick";
-                break;
-            case "normal":
-                label = "Normal";
-                break;
-            case "intensive":
-                label = "Intensive";
-                break;
-            case "deep":
-                label = "Deep";
-                break;
-        }
-
-        return {
-            value: val,
-            label: label
-        };
-    });
-
-    const description = React.useMemo(() => {
-        let desc = "Trade speed for thoroughness and vice-versa.";
-
-        if (cleanRouteControlProperties) {
-            if (cleanRouteControlProperties.mopOnly.length > 0) {
-                const labels = cleanRouteControlProperties.mopOnly.map(route => {
-                    const label = options.find(o => o.value === route)?.label ?? "unknown";
-
-                    return `"${label}"`;
-                });
-
-                desc += ` ${labels.join(", ")} only ${labels.length > 1 ? "apply" : "applies"} when mopping.`;
-            }
-
-            if (cleanRouteControlProperties.oneTime.length > 0) {
-                const labels = cleanRouteControlProperties.oneTime.map(route => {
-                    const label = options.find(o => o.value === route)?.label ?? "unknown";
-
-                    return `"${label}"`;
-                });
-
-                desc += ` ${labels.join(", ")} ${labels.length > 1 ? "are" : "is"} one-time only.`;
-            }
-        }
-
-        return desc;
-    }, [cleanRouteControlProperties, options]);
-
-
-    const {
-        data: data,
-        isPending: isPending,
-        isFetching: isFetching,
-        isError: isError,
-    } = useCleanRouteQuery();
-
-    const {mutate: mutate, isPending: isChanging} = useCleanRouteMutation();
-    const loading = isFetching || isChanging;
-    const disabled = loading || isChanging || isError;
-
-    const currentValue = options.find(mode => {
-        return mode.value === data;
-    }) ?? {value: "", label: ""};
-
-
-    return (
-        <SelectListMenuItem
-            options={options}
-            currentValue={currentValue}
-            setValue={(e) => {
-                mutate(e.value as CleanRoute);
-            }}
-            disabled={disabled}
-            loadingOptions={cleanRouteControlPropertiesPending || isPending}
-            loadError={cleanRouteControlPropertiesError}
-            primaryLabel="Clean Route"
-            secondaryLabel={description}
-            icon={<CleanRouteControlIcon/>}
-        />
-    );
-};
-
 const MopDockMopDryingTimeControlCapabilitySelectListMenuItem = () => {
     const SORT_ORDER = {
         "2h": 1,
@@ -998,7 +880,6 @@ const RobotOptions = (): React.ReactElement => {
         obstacleImagesSupported,
         collisionAvoidantNavigationControlCapabilitySupported,
         floorMaterialDirectionAwareNavigationControlSupported,
-        cleanRouteControlSupported,
         carpetModeControlCapabilitySupported,
         carpetSensorModeControlCapabilitySupported,
 
@@ -1029,7 +910,6 @@ const RobotOptions = (): React.ReactElement => {
         Capability.ObstacleImages,
         Capability.CollisionAvoidantNavigation,
         Capability.FloorMaterialDirectionAwareNavigationControl,
-        Capability.CleanRouteControl,
         Capability.CarpetModeControl,
         Capability.CarpetSensorModeControl,
 
@@ -1088,14 +968,9 @@ const RobotOptions = (): React.ReactElement => {
             />);
         }
 
-        if (cleanRouteControlSupported) {
-            items.push(<CleanRouteControlCapabilitySelectListMenuItem key="cleanRouteControl"/>);
-        }
-
         if (
             collisionAvoidantNavigationControlCapabilitySupported ||
-            floorMaterialDirectionAwareNavigationControlSupported ||
-            cleanRouteControlSupported
+            floorMaterialDirectionAwareNavigationControlSupported
         ) {
             items.push(<SpacerListMenuItem key={"spacer-navigation"} halfHeight={true}/>);
         }
@@ -1143,7 +1018,6 @@ const RobotOptions = (): React.ReactElement => {
     }, [
         collisionAvoidantNavigationControlCapabilitySupported,
         floorMaterialDirectionAwareNavigationControlSupported,
-        cleanRouteControlSupported,
         carpetModeControlCapabilitySupported,
         carpetSensorModeControlCapabilitySupported,
         mopExtensionControlCapabilitySupported,
